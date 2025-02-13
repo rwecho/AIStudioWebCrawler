@@ -4,6 +4,7 @@ from groq import Groq
 import logging
 from transformers import LlamaTokenizer
 from util.common_util import CommonUtil
+from config import config
 
 # 设置日志记录
 logging.basicConfig(
@@ -20,13 +21,13 @@ tokenizer = LlamaTokenizer.from_pretrained("huggyllama/llama-65b")
 class LLMUtil:
     def __init__(self):
         load_dotenv()
-        self.groq_api_key = os.getenv("GROQ_API_KEY")
+        self.groq_api_key = config.GROQ_API_KEY
         logger.info(f"Groq API Key:{self.groq_api_key}")
-        self.detail_sys_prompt = os.getenv("DETAIL_SYS_PROMPT")
-        self.tag_selector_sys_prompt = os.getenv("TAG_SELECTOR_SYS_PROMPT")
-        self.language_sys_prompt = os.getenv("LANGUAGE_SYS_PROMPT")
-        self.groq_model = os.getenv("GROQ_MODEL")
-        self.groq_max_tokens = int(os.getenv("GROQ_MAX_TOKENS", 5000))
+        self.detail_sys_prompt = config.DETAIL_SYS_PROMPT
+        self.tag_selector_sys_prompt = config.TAG_SELECTOR_SYS_PROMPT
+        self.language_sys_prompt = config.LANGUAGE_SYS_PROMPT
+        self.groq_model = config.GROQ_MODEL
+        self.groq_max_tokens = config.GROQ_MAX_TOKENS
         self.client = Groq(api_key=self.groq_api_key)
 
     def process_detail(self, user_prompt):

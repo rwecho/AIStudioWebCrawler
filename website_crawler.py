@@ -9,6 +9,7 @@ import os
 from util.llm_util import LLMUtil
 from supabase import create_client
 from typing import Dict, List, Optional
+from config import config
 
 # 配置日志记录
 logging.basicConfig(
@@ -26,7 +27,7 @@ class WebsiteCrawler:
         """初始化爬虫，设置LLM工具、数据库连接和用户代理"""
         self.llm = LLMUtil()
         self.supabase = create_client(
-            os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+            config.SUPABASE_URL, config.SUPABASE_SERVICE_ROLE_KEY
         )
         # 设置多个User-Agent以模拟不同浏览器
         self.user_agents = [
