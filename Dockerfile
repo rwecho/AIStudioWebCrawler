@@ -12,7 +12,7 @@ libxfixes3 libxrandr2 libgbm1 libasound2 libpango-1.0-0 libcairo2
 RUN rm -rf /var/lib/apt/lists/*
 
 # 安装 playwright
-RUN python -m playwright install
+RUN python -m playwright install --with-deps
 
 COPY . .
 
