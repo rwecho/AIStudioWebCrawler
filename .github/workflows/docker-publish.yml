@@ -1,0 +1,55 @@
+name: Docker Build and Push
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+env:
+  IMAGE_NAME: aistudio-webcrawler
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Create .env file
+        run: |
+          echo "GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}" > .env
+          echo "GROQ_MODEL=${{ secrets.GROQ_MODEL }}" >> .env
+          echo "GROQ_MAX_TOKENS=${{ secrets.GROQ_MAX_TOKENS }}" >> .env
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
+          echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> .env
+          echo "DETAIL_SYS_PROMPT=${{ secrets.DETAIL_SYS_PROMPT }}" >> .env
+          echo "TAG_SELECTOR_SYS_PROMPT=${{ secrets.TAG_SELECTOR_SYS_PROMPT }}" >> .env
+          echo "LANGUAGE_SYS_PROMPT=${{ secrets.LANGUAGE_SYS_PROMPT }}" >> .env
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
