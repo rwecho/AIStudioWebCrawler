@@ -25,6 +25,10 @@ jobs:
           echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
           echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> .env
 
+      # Set up the buildx to run build for multiple platforms
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@c5ffa2a61740d9877bd1f40899a87c8ec93b0d9f
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:

@@ -11,8 +11,9 @@ libcups2 libdrm2 libdbus-1-3 libxkbcommon0 libatspi2.0-0 libxcomposite1 libxdama
 libxfixes3 libxrandr2 libgbm1 libasound2 libpango-1.0-0 libcairo2
 RUN rm -rf /var/lib/apt/lists/*
 
-# 安装 playwright
-RUN python -m playwright install --with-deps
+# Install playwright with only chromium
+RUN python -m playwright install chromium
+RUN python -m playwright install-deps chromium
 
 COPY . .
 
