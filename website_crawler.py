@@ -83,7 +83,8 @@ class WebsiteCrawler:
             await page.wait_for_load_state("networkidle")
             await page.wait_for_selector("body", timeout=10000)
             await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            await page.wait_for_timeout(200)
+            await page.wait_for_timeout(2000)
+            await page.evaluate("window.scrollTo(0, 0)")
         except Exception as e:
             logger.info(f"页面加载超时，继续处理已获取的内容: {e}")
 
@@ -215,7 +216,6 @@ class WebsiteCrawler:
                 "url": url,
                 "title": metadata["title"],
                 "description": metadata["description"],
-                "detail": detail,
                 "screenshot_key": screenshot_key,
                 "tags": processed_tags,
                 "languages": processed_languages,
