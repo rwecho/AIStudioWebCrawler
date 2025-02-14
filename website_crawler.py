@@ -80,13 +80,47 @@ class WebsiteCrawler:
         """
         try:
             await page.goto(url)
-            await page.wait_for_load_state("networkidle")
+            await page.wait_for_load_state("domcontentloaded")
             await page.wait_for_selector("body", timeout=10000)
             await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
             await page.wait_for_timeout(2000)
             await page.evaluate("window.scrollTo(0, 0)")
         except Exception as e:
             logger.info(f"页面加载超时，继续处理已获取的内容: {e}")
+
+    async def get_page_content(self, page: Page, max_retries: int = 3) -> str:
+        """获取页面内容，带有重试机制
+
+        Args:
+            page: Playwright页面实例
+            max_retries: 最大重试次数
+
+        Returns:
+            页面HTML内容
+        """
+        for i in range(max_retries):
+            try:
+                # 确保页面已加载
+                await page.wait_for_load_state("domcontentloaded")
+                await page.wait_for_selector("body", timeout=10000)
+
+                # 获取页面内容
+                content = await page.content()
+                if content and len(content) > 0:
+                    return content
+
+                logger.warning(f"页面内容为空，重试第 {i + 1} 次")
+                await page.wait_for_timeout(2000)  # 等待2秒后重试
+
+            except Exception as e:
+                logger.error(f"获取页面内容失败，重试第 {i + 1} 次: {str(e)}")
+                if i == max_retries - 1:
+                    raise Exception(
+                        f"获取页面内容失败，已重试 {max_retries} 次: {str(e)}"
+                    )
+                await page.wait_for_timeout(2000)
+
+        raise Exception("获取页面内容失败")
 
     def extract_page_metadata(self, soup: BeautifulSoup, url: str) -> Dict:
         """提取页面元数据
@@ -180,14 +214,15 @@ class WebsiteCrawler:
             包含所有处理结果的字典
         """
         async with async_playwright() as p:
-            browser = await p.chromium.launch()
+            browser = await p.chromium.launch(headless=True)
             page = await self.setup_page(browser)
 
             logger.info(f"开始爬取页面: {url}")
             await self.load_page(page, url)
 
-            # 解析页面内容
-            soup = BeautifulSoup(await page.content(), "html.parser")
+            # 使用新的获取页面内容方法
+            content = await self.get_page_content(page)
+            soup = BeautifulSoup(content, "html.parser")
             metadata = self.extract_page_metadata(soup, url)
 
             # 处理截图
@@ -225,7 +260,7 @@ class WebsiteCrawler:
 async def main():
     """主函数"""
     crawler = WebsiteCrawler()
-    result = await crawler.crawl("https://suno4.cn/", [], [])
+    result = await crawler.crawl("https://huaban.com/", [], [])
     logger.info(f"爬取完成: {result['url']}")
     return result
 
